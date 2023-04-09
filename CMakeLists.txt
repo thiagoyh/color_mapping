@@ -31,3 +31,7 @@ target_link_libraries(mapping ${PCL_LIBRARIES} ${OpenCV_LIBS})
 add_executable(color color_main.cc include/color_mapping.cc)
 target_link_libraries(color ${PCL_LIBRARIES})
 target_link_libraries(color ${OpenCV_LIBS})
+
+add_executable(color_realtime real_time_main.cc include/real_time_color.cc)
+target_link_libraries(color_realtime ${PCL_LIBRARIES})
+target_link_libraries(color_realtime ${OpenCV_LIBS})
