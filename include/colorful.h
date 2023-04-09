@@ -45,7 +45,7 @@ private:
     std::string ground_truth_path_ = "/home/lyh/dataset/groundtruth_kitti/dataset/poses/001.txt";
     std::string map_path_ = "/home/lyh/experiment/kitti/kitti_001.pcd";
     std::string image_path_ = "/home/lyh/dataset/kitti_00/image_02_un/";
-    std::string out_path_ = "/home/lyh/experiment/kitti/kitti_001color.pcd";
+    std::string out_path_ = "/home/lyh/experiment/kitti/kitti_color/kitti_001color.pcd";
     int width_;
     int height_;
 };

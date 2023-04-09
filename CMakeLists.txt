@@ -28,6 +28,6 @@ file(GLOB_RECURSE ALL_SRCS "src/*.cc" "include/*.cc")
 add_executable(mapping node_main.cc ${ALL_SRCS})
 target_link_libraries(mapping ${PCL_LIBRARIES} ${OpenCV_LIBS})
 
-add_executable(color color_main.cc include/colorful.cc)
+add_executable(color color_main.cc include/color_mapping.cc)
 target_link_libraries(color ${PCL_LIBRARIES})
 target_link_libraries(color ${OpenCV_LIBS})

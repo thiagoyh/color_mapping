@@ -95,19 +95,16 @@ void Color::project2Pixel(cv::Mat& image, Eigen::Matrix<float, 3, 4>& gt_pose) {
         point_4f.block<3, 1>(0, 0) = point_cam0;
         point_4f(4) = 1.0f;
         Eigen::Vector3f pixel_u_v = P_rect_02 * R_rect_02 * point_4f;
-
+        int u = std::floor(pixel_u_v.x() / pixel_u_v.z());
+        int v = std::floor(pixel_u_v.y() / pixel_u_v.z());
         // Eigen::Vector2f pixel_u_v = brownconrady(point_cam0);
         if (pixel_u_v.x() < 0 || pixel_u_v.x() >= width_ ||
             pixel_u_v.y() < 0 || pixel_u_v.y() >= height_) {
             continue;
         }
-
-        // std::cout << "cjdsihfsfu\n";
-        int u = std::floor(pixel_u_v.x());
-        int v = std::floor(pixel_u_v.y());
-        int r = image.at<cv::Vec3b>(v, u)[0];
+        int r = image.at<cv::Vec3b>(v, u)[2];
         int g = image.at<cv::Vec3b>(v, u)[1];
-        int b = image.at<cv::Vec3b>(v, u)[2];
+        int b = image.at<cv::Vec3b>(v, u)[0];
 
         cloud_with_color_->points[i].x = point_temp.x();
         cloud_with_color_->points[i].y = point_temp.y();

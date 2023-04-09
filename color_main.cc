@@ -1,7 +1,7 @@
-#include "colorful.h"
+#include "color_mapping.h"
 
 int main() {
-    Color color;
-    color.coloring();
+    ColorMapping map;
+    map.MapBuild();
     return 0;
 }
