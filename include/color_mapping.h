@@ -15,6 +15,7 @@
 class ColorMapping {
 public:
     ColorMapping();
+    ColorMapping(const std::string& config_file);
     ~ColorMapping();
     void MapBuild();
 

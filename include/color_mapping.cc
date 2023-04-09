@@ -4,6 +4,7 @@
 #include <thread>
 #include <pcl/io/pcd_io.h>
 #include "color_mapping.h"
+#include "yaml-cpp/yaml.h"
 
 ColorMapping::ColorMapping() :
     ground_truth_path_("/home/lyh/dataset/groundtruth_kitti/dataset/poses/kitti08/004.txt"),
@@ -27,6 +28,18 @@ ColorMapping::ColorMapping() :
     trans = P2 * R0_rect * T_ve_cam_;
     filter_.setLeafSize(0.2f, 0.2f, 0.2f);
 }
+
+ColorMapping::ColorMapping(const std::string& config_file) : map_points_(new pcl::PointCloud<pcl::PointXYZRGB>()) {
+    auto yaml = YAML::LoadFile(config_file);
+    ground_truth_path_ = yaml["ground_truth_path"].as<std::string>();
+    lidar_path_ = yaml["lidar_path"].as<std::string>();
+    image_path_ = yaml["image_path"].as<std::string>();
+    result_path_ = yaml["result_path"].as<std::string>();
+    std::vector<float> R_velo_cam_vec = yaml["R_velo_cam"].as<std::vector<float>>();
+    std::vector<float> t_velo_cam_vec = yaml["t_velo_cam"].as<std::vector<float>>();
+
+}
+
 
 ColorMapping::~ColorMapping() {}
 
