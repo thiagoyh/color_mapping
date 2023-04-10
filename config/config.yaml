@@ -1,8 +1,10 @@
-ground_truth_path: "/home/lyh/dataset/groundtruth_kitti/dataset/poses/00.txt"
-lidar_path: "/home/lyh/dataset/kitti_00/velodyne_points/data/"
-image_path: "/home/lyh/dataset/kitti_00/image_02/data/"
+ground_truth_path: "/home/lyh/dataset/groundtruth_kitti/dataset/poses/07.txt"
+lidar_path: "/home/lyh/dataset/kitti_07/2011_09_30_drive_0027_sync/velodyne_points/data/"
+image_path: "/home/lyh/dataset/kitti_07/2011_09_30_drive_0027_sync/image_02/data/"
 result_path: "/home/lyh/experiment/kitti/kitti_color/real_time/"
+line_begin: 0
 
+# kitti 07
 R_velo_cam: [7.027555e-03, -9.999753e-01, 2.599616e-05,
            -2.254837e-03, -4.184312e-05, -9.999975e-01,
             9.999728e-01, 7.027479e-03, -2.255075e-03]
@@ -17,6 +19,7 @@ P2: [7.070912e+02, 0.000000e+00, 6.018873e+02,
   1.831104e+02, 1.178601e-01, 0.000000e+00,
    0.000000e+00, 1.000000e+00, 6.203223e-03]
 
+# kitti 03
 # R_velo_cam: [7.533745000000e-03,-9.999714000000e-01,-6.166020000000e-04,
 #     1.480249000000e-02,7.280733000000e-04,-9.998902000000e-01,
 #     9.998621000000e-01,7.523790000000e-03,1.480755000000e-02]

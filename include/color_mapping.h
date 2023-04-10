@@ -30,6 +30,7 @@ private:
     Eigen::Matrix<float, 3, 4> P2;
     Eigen::Matrix<float, 4, 4> R0_rect;
     Eigen::Matrix<float, 3, 4> trans;
+    int line_begin_;
     pcl::VoxelGrid<pcl::PointXYZRGB> filter_;
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr map_points_;
     pcl::PCDWriter writer;

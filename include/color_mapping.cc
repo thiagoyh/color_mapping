@@ -40,7 +40,7 @@ ColorMapping::ColorMapping(const std::string& config_file) : map_points_(new pcl
     std::vector<float> t_velo_cam_vec = yaml["t_velo_cam"].as<std::vector<float>>();
     std::vector<float> R_rect_00_vec = yaml["R_rect_00"].as<std::vector<float>>();
     std::vector<float> P2_vec = yaml["P2"].as<std::vector<float>>();
-
+    line_begin_ = yaml["line_begin"].as<int>();
     Eigen::Matrix3f R_velo_cam;
     Eigen::Vector3f t_velo_cam;
     R_velo_cam << R_velo_cam_vec[0], R_velo_cam_vec[1], R_velo_cam_vec[2],
@@ -69,7 +69,7 @@ ColorMapping::~ColorMapping() {}
 
 void ColorMapping::MapBuild() {
     std::ifstream ground_truth_file(ground_truth_path_, std::ifstream::in);
-    std::size_t line_num = 1000;
+    std::size_t line_num = line_begin_;
     std::string line;
 
     while (std::getline(ground_truth_file, line)) {
@@ -113,7 +113,7 @@ void ColorMapping::MapBuild() {
             Eigen::Vector3f p_result = trans * point_velodyne;
             int p_u = std::floor(p_result.x() / p_result.z());
             int p_v = std::floor(p_result.y() / p_result.z());
-            if ((p_u < 0) || (p_u > cols) || (p_v < 0) || (p_v > rows) || p_result.z() < 0 || p_result.z() > 30.0) {
+            if ((p_u < 20) || (p_u > cols - 20) || (p_v < 30) || (p_v > rows - 30) || p_result.z() < 0 || p_result.z() > 30.0) {
                 continue;
             }
             pcl::PointXYZRGB point_rgb;
@@ -125,10 +125,10 @@ void ColorMapping::MapBuild() {
             point_rgb.b = image.at<cv::Vec3b>(p_v, p_u)[0];
             map_points_->push_back(point_rgb);
         }
-        // if (line_num % 10 == 0) {
-        //     writer.write(result_path_ + std::to_string(line_num) + ".pcd", *map_points_);
-        //     map_points_->clear();
-        // }
+        if (line_num % 50 == 0) {
+            writer.write(result_path_ + std::to_string(line_num) + ".pcd", *map_points_);
+            map_points_->clear();
+        }
         std::chrono::milliseconds dura(2);
         std::this_thread::sleep_for(dura);
         line_num++;
@@ -136,7 +136,7 @@ void ColorMapping::MapBuild() {
     }
     // filter_.setInputCloud(map_points_);
     // filter_.filter(*map_points_);
-    // writer.write(result_path_ + std::to_string(line_num) + ".pcd", *map_points_);
+    // writer.write(result_path_, *map_points_);
     std::cout << "line_num: " << line_num << std::endl;
 }
 
