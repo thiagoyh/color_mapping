@@ -8,7 +8,7 @@
 #include <pcl/point_types.h>
 #include <pcl/filters/voxel_grid.h>
 #include <opencv2/highgui.hpp>
-
+#include <pcl/io/pcd_io.h>
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
@@ -32,4 +32,5 @@ private:
     Eigen::Matrix<float, 3, 4> trans;
     pcl::VoxelGrid<pcl::PointXYZRGB> filter_;
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr map_points_;
+    pcl::PCDWriter writer;
 };

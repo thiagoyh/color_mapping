@@ -6,7 +6,7 @@
 #include "mapping.h"
 
 Mapping::Mapping() :
-    ground_truth_path_("/home/lyh/dataset/groundtruth_kitti/dataset/poses/002.txt"),
+    ground_truth_path_("/home/lyh/dataset/groundtruth_kitti/dataset/poses/kitti00/002.txt"),
     lidar_path_("/home/lyh/dataset/kitti_00/velodyne_points/data/"),
     result_path_("/home/lyh/experiment/kitti/kitti_002full.pcd"),
     map_points_(new pcl::PointCloud<pcl::PointXYZI>()) {

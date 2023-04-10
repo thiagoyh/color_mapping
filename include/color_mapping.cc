@@ -2,15 +2,15 @@
 #include <iterator>
 #include <chrono>
 #include <thread>
-#include <pcl/io/pcd_io.h>
+
 #include "color_mapping.h"
 #include "yaml-cpp/yaml.h"
 
 ColorMapping::ColorMapping() :
-    ground_truth_path_("/home/lyh/dataset/groundtruth_kitti/dataset/poses/kitti08/004.txt"),
-    lidar_path_("/home/lyh/dataset/data_velodyne/08/velodyne/"),
-    image_path_("/home/lyh/dataset/data_color/08/image_2/"),
-    result_path_("/home/lyh/experiment/kitti/kitti_color/kitti08/kitti_004.pcd"),
+    ground_truth_path_("/home/lyh/dataset/groundtruth_kitti/dataset/poses/kitti00/002.txt"),
+    lidar_path_("/home/lyh/dataset/kitti_00/velodyne_points/data/"),
+    image_path_("/home/lyh/dataset/kitti_00/image_02_un/"),
+    result_path_("/home/lyh/experiment/kitti/kitti_color/real_time/"),
     map_points_(new pcl::PointCloud<pcl::PointXYZRGB>()) {
     T_ve_cam_ << 7.533745000000e-03,-9.999714000000e-01,-6.166020000000e-04,-4.069766000000e-03,
     1.480249000000e-02,7.280733000000e-04,-9.998902000000e-01,-7.631618000000e-02,
@@ -30,6 +30,7 @@ ColorMapping::ColorMapping() :
 }
 
 ColorMapping::ColorMapping(const std::string& config_file) : map_points_(new pcl::PointCloud<pcl::PointXYZRGB>()) {
+    std::cout << config_file << std::endl;
     auto yaml = YAML::LoadFile(config_file);
     ground_truth_path_ = yaml["ground_truth_path"].as<std::string>();
     lidar_path_ = yaml["lidar_path"].as<std::string>();
@@ -37,7 +38,30 @@ ColorMapping::ColorMapping(const std::string& config_file) : map_points_(new pcl
     result_path_ = yaml["result_path"].as<std::string>();
     std::vector<float> R_velo_cam_vec = yaml["R_velo_cam"].as<std::vector<float>>();
     std::vector<float> t_velo_cam_vec = yaml["t_velo_cam"].as<std::vector<float>>();
+    std::vector<float> R_rect_00_vec = yaml["R_rect_00"].as<std::vector<float>>();
+    std::vector<float> P2_vec = yaml["P2"].as<std::vector<float>>();
 
+    Eigen::Matrix3f R_velo_cam;
+    Eigen::Vector3f t_velo_cam;
+    R_velo_cam << R_velo_cam_vec[0], R_velo_cam_vec[1], R_velo_cam_vec[2],
+               R_velo_cam_vec[3], R_velo_cam_vec[4], R_velo_cam_vec[5],
+               R_velo_cam_vec[6], R_velo_cam_vec[7], R_velo_cam_vec[8];
+    t_velo_cam << t_velo_cam_vec[0], t_velo_cam_vec[1], t_velo_cam_vec[2];
+    T_ve_cam_.block<3, 3>(0, 0) = R_velo_cam;
+    T_ve_cam_.block<3, 1>(0, 3) = t_velo_cam;
+    T_ve_cam_(3, 0) = 0.0f;
+    T_ve_cam_(3, 1) = 0.0f;
+    T_ve_cam_(3, 2) = 0.0f;
+    T_ve_cam_(3, 3) = 1.0f;
+    P2 << P2_vec[0], P2_vec[1], P2_vec[2], P2_vec[3],
+          P2_vec[4], P2_vec[5], P2_vec[6], P2_vec[7],
+          P2_vec[8], P2_vec[9], P2_vec[10], P2_vec[11];
+    R0_rect << R_rect_00_vec[0], R_rect_00_vec[1], R_rect_00_vec[2], 0,
+               R_rect_00_vec[3], R_rect_00_vec[4], R_rect_00_vec[5], 0,
+               R_rect_00_vec[6], R_rect_00_vec[7], R_rect_00_vec[8], 0,
+               0, 0, 0, 1;
+    std::cout << R0_rect << std::endl;
+    trans = P2 * R0_rect * T_ve_cam_;
 }
 
 
@@ -45,11 +69,10 @@ ColorMapping::~ColorMapping() {}
 
 void ColorMapping::MapBuild() {
     std::ifstream ground_truth_file(ground_truth_path_, std::ifstream::in);
-    std::size_t line_num = 3000;
+    std::size_t line_num = 1000;
     std::string line;
 
     while (std::getline(ground_truth_file, line)) {
-        // std::getline(ground_truth_file, line);
         std::stringstream pose_stream(line);
         std::string s;
         Eigen::Matrix<float, 3, 4> gt_pose;
@@ -63,21 +86,12 @@ void ColorMapping::MapBuild() {
         Eigen::Quaternionf q_w_i(gt_pose.topLeftCorner<3, 3>());
         q_w_i.normalize();
         Eigen::Vector3f t_w_i = gt_pose.topRightCorner<3, 1>();
-        // kitti08 342 1211 1656 1808 1949
-        // if (line_num == 2405 || line_num == 2410 || line_num == 2569) {
-        //     line_num++;
-        //     continue;
-        // }
-        if (line_num == 3532) {
-            line_num++;
-            continue;
-        }
         std::stringstream lidar_data_path;
         lidar_data_path << lidar_path_
-                        << std::setfill('0') << std::setw(6) << line_num << ".bin";
+                        << std::setfill('0') << std::setw(10) << line_num << ".bin";
         std::stringstream image_data_path;
         image_data_path << image_path_
-                        << std::setfill('0') << std::setw(6) << line_num << ".png";
+                        << std::setfill('0') << std::setw(10) << line_num << ".png";
         cv::Mat image = cv::imread(image_data_path.str());
         if (image.channels() != 3) {
             std::cout << "need rgb picture!\n";
@@ -110,20 +124,20 @@ void ColorMapping::MapBuild() {
             point_rgb.g = image.at<cv::Vec3b>(p_v, p_u)[1];
             point_rgb.b = image.at<cv::Vec3b>(p_v, p_u)[0];
             map_points_->push_back(point_rgb);
-            // map_points_->push_back(point);
         }
-
-
+        // if (line_num % 10 == 0) {
+        //     writer.write(result_path_ + std::to_string(line_num) + ".pcd", *map_points_);
+        //     map_points_->clear();
+        // }
         std::chrono::milliseconds dura(2);
         std::this_thread::sleep_for(dura);
         line_num++;
-        // if (line_num == 200) break;
+        // if (line_num == 400) break;
     }
     // filter_.setInputCloud(map_points_);
     // filter_.filter(*map_points_);
+    // writer.write(result_path_ + std::to_string(line_num) + ".pcd", *map_points_);
     std::cout << "line_num: " << line_num << std::endl;
-    pcl::PCDWriter writer;
-    writer.write(result_path_, *map_points_);
 }
 
 
